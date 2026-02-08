@@ -393,8 +393,6 @@
             }
         };
 
-        let currentLang = 'en';
-
         function getLanguage() {
             const lang = navigator.language.slice(0, 2);
             if (['ko', 'ja', 'zh', 'es'].includes(lang)) {
@@ -402,6 +400,8 @@
             }
             return 'en';
         }
+
+        let currentLang = getLanguage();
 
         function t(key, params = {}) {
             let text = translations[currentLang][key] || translations['en'][key] || key;
