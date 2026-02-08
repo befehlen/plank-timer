@@ -210,7 +210,15 @@
 
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js');
+            navigator.serviceWorker.register('sw.js').then(reg => {
+                // Check for updates on load
+                reg.update();
+            });
+
+            // Reload page when new service worker takes control (after update)
+            navigator.serviceWorker.addEventListener('controllerchange', () => {
+                window.location.reload();
+            });
         }
 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
