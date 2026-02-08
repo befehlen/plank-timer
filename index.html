@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>프로 플랭크 타이머</title>
+    <style>
+        body {
+            font-family: 'Pretendard', sans-serif;
+            text-align: center;
+            background: #1a1a2e;
+            color: white;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        #timer-card {
+            background: #16213e;
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 400px;
+            border: 1px solid #0f3460;
+        }
+
+        #status {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #e94560;
+            margin-bottom: 10px;
+            min-height: 2.5rem;
+        }
+
+        #time {
+            font-size: 6rem;
+            font-weight: 900;
+            color: #fff;
+            margin: 10px 0;
+            text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+        }
+
+        #next-step {
+            color: #95a5a6;
+            font-size: 1rem;
+            margin-bottom: 30px;
+        }
+
+        button {
+            background: #e94560;
+            color: white;
+            border: none;
+            padding: 20px 50px;
+            font-size: 1.5rem;
+            border-radius: 50px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: 0.3s;
+            box-shadow: 0 5px 15px rgba(233, 69, 96, 0.4);
+        }
+
+        button:hover {
+            background: #ff4d6d;
+            transform: scale(1.05);
+        }
+
+        .progress {
+            margin-top: 30px;
+            font-size: 1.2rem;
+            color: #4ecca3;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="timer-card">
+        <div id="status">준비되셨나요?</div>
+        <div id="time">10</div>
+        <div id="next-step">버튼을 누르면 10초 후 시작합니다</div>
+        <button onclick="initTimer()">운동 시작!</button>
+        <div class="progress" id="progress">전체 3세트 진행</div>
+    </div>
+
+    <script>
+        // 오디오 컨텍스트 설정 (비프음 생성용)
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playBeep(frequency = 440, duration = 0.2) {
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            oscillator.frequency.value = frequency;
+            oscillator.type = 'sine';
+            gainNode.gain.setValueAtTime(0, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.5, audioCtx.currentTime + 0.01);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+            oscillator.start(audioCtx.currentTime);
+            oscillator.stop(audioCtx.currentTime + duration);
+        }
+
+        const routine = [
+            { name: "준비 하세요!", time: 10, color: "#f1c40f" },
+            { name: "일반 플랭크", time: 45, color: "#e94560" },
+            { name: "자세 변경(좌)", time: 10, color: "#f1c40f" },
+            { name: "사이드 플랭크(좌)", time: 30, color: "#0984e3" },
+            { name: "자세 변경(우)", time: 10, color: "#f1c40f" },
+            { name: "사이드 플랭크(우)", time: 30, color: "#0984e3" },
+            { name: "세트 휴식", time: 60, color: "#4ecca3" }
+        ];
+
+        let currentSet = 1;
+        let stepIndex = 0;
+        let timeLeft = 0;
+        let timerInterval;
+
+        function initTimer() {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            document.querySelector('button').style.display = 'none';
+            runStep();
+        }
+
+        function runStep() {
+            if (currentSet > 3) {
+                document.getElementById('status').innerText = "전체 루틴 완료!";
+                document.getElementById('time').innerText = "DONE";
+                document.getElementById('next-step').innerText = "정말 대단하세요!";
+                playBeep(880, 0.5); // 완료음
+                return;
+            }
+
+            let current = routine[stepIndex];
+            timeLeft = current.time;
+
+            document.getElementById('status').innerText = current.name;
+            document.getElementById('status').style.color = current.color;
+            document.getElementById('progress').innerText = `현재 세트: ${currentSet} / 3`;
+
+            playBeep(440, 0.2); // 단계 시작음
+            updateDisplay();
+
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateDisplay();
+
+                if (timeLeft <= 3 && timeLeft > 0) playBeep(660, 0.05); // 카운트다운 소리
+
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    stepIndex++;
+
+                    if (stepIndex >= routine.length) {
+                        stepIndex = 1; // 준비 단계(index 0)는 첫 세트만 하고 생략
+                        currentSet++;
+                    }
+                    runStep();
+                }
+            }, 1000);
+        }
+
+        function updateDisplay() {
+            document.getElementById('time').innerText = timeLeft;
+            let nextName = routine[stepIndex + 1] ? routine[stepIndex + 1].name : "다시 일반 플랭크";
+            document.getElementById('next-step').innerText = "다음: " + nextName;
+        }
+    </script>
+</body>
+
+</html>
