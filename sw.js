@@ -3,6 +3,8 @@ const ASSETS = [
     '/',
     '/index.html',
     '/manifest.json',
+    '/style.css',
+    '/script.js',
     'https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css'
 ];
 

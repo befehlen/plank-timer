@@ -1,0 +1,171 @@
+@import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css');
+
+body {
+    font-family: 'Pretendard', sans-serif;
+    text-align: center;
+    background: #1a1a2e;
+    color: white;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+}
+
+#timer-card {
+    background: #16213e;
+    border-radius: 30px;
+    padding: 40px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+    width: 100%;
+    max-width: 400px;
+    border: 1px solid #0f3460;
+    position: relative;
+}
+
+.settings-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    z-index: 10;
+    opacity: 0.7;
+    transition: 0.3s;
+}
+
+.settings-btn:hover {
+    opacity: 1;
+    transform: rotate(90deg);
+}
+
+#status {
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #e94560;
+    margin-bottom: 10px;
+    min-height: 2.5rem;
+}
+
+#time {
+    font-size: 6rem;
+    font-weight: 900;
+    color: #fff;
+    margin: 10px 0;
+    text-shadow: 0 0 20px rgba(233, 69, 96, 0.5);
+}
+
+#next-step {
+    color: #95a5a6;
+    font-size: 1rem;
+    margin-bottom: 30px;
+}
+
+button {
+    background: #e94560;
+    color: white;
+    border: none;
+    padding: 20px 50px;
+    font-size: 1.5rem;
+    border-radius: 50px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+    box-shadow: 0 5px 15px rgba(233, 69, 96, 0.4);
+}
+
+button:hover {
+    background: #ff4d6d;
+    transform: scale(1.05);
+}
+
+.progress {
+    margin-top: 30px;
+    font-size: 1.2rem;
+    color: #4ecca3;
+    font-weight: bold;
+}
+
+/* Settings Modal */
+#settings-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.modal-content {
+    background: #16213e;
+    padding: 30px;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 350px;
+    text-align: left;
+    border: 1px solid #0f3460;
+}
+
+.modal-content h2 {
+    margin-top: 0;
+    color: #e94560;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.setting-item {
+    margin-bottom: 15px;
+}
+
+.setting-item label {
+    display: block;
+    margin-bottom: 5px;
+    color: #bdc3c7;
+}
+
+.setting-item input[type="number"] {
+    width: 100%;
+    padding: 10px;
+    background: #0f3460;
+    border: 1px solid #1a1a2e;
+    color: white;
+    border-radius: 5px;
+    font-size: 1.1rem;
+    box-sizing: border-box; /* Fix padding issue */
+}
+
+.modal-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+    gap: 10px;
+}
+
+.modal-buttons button {
+    padding: 10px 15px;
+    font-size: 1rem;
+    flex: 1;
+}
+
+.btn-cancel {
+    background: #95a5a6;
+    box-shadow: none;
+}
+.btn-cancel:hover {
+    background: #7f8c8d;
+}
+
+.btn-reset {
+    background: #e67e22; /* Orange for warning/reset */
+    box-shadow: none;
+}
+.btn-reset:hover { background: #d35400; }
+
+.btn-save {
+    background: #e94560;
+}
