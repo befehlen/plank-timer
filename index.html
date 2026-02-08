@@ -82,14 +82,13 @@
 
     <div id="timer-card">
         <div id="status">준비되셨나요?</div>
-        <div id="time">10</div>
-        <div id="next-step">버튼을 누르면 10초 후 시작합니다</div>
+        <div id="time">05</div>
+        <div id="next-step">버튼을 누르면 5초 후 시작합니다</div>
         <button onclick="initTimer()">운동 시작!</button>
         <div class="progress" id="progress">전체 3세트 진행</div>
     </div>
 
     <script>
-        // 오디오 컨텍스트 설정 (비프음 생성용)
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playBeep(frequency = 440, duration = 0.2) {
             const oscillator = audioCtx.createOscillator();
@@ -106,7 +105,7 @@
         }
 
         const routine = [
-            { name: "준비 하세요!", time: 10, color: "#f1c40f" },
+            { name: "준비 하세요!", time: 5, color: "#f1c40f" }, // 10초에서 5초로 수정
             { name: "일반 플랭크", time: 45, color: "#e94560" },
             { name: "자세 변경(좌)", time: 10, color: "#f1c40f" },
             { name: "사이드 플랭크(좌)", time: 30, color: "#0984e3" },
@@ -131,7 +130,7 @@
                 document.getElementById('status').innerText = "전체 루틴 완료!";
                 document.getElementById('time').innerText = "DONE";
                 document.getElementById('next-step').innerText = "정말 대단하세요!";
-                playBeep(880, 0.5); // 완료음
+                playBeep(880, 0.5);
                 return;
             }
 
@@ -142,21 +141,21 @@
             document.getElementById('status').style.color = current.color;
             document.getElementById('progress').innerText = `현재 세트: ${currentSet} / 3`;
 
-            playBeep(440, 0.2); // 단계 시작음
+            playBeep(440, 0.2);
             updateDisplay();
 
             timerInterval = setInterval(() => {
                 timeLeft--;
                 updateDisplay();
 
-                if (timeLeft <= 3 && timeLeft > 0) playBeep(660, 0.05); // 카운트다운 소리
+                if (timeLeft <= 3 && timeLeft > 0) playBeep(660, 0.05);
 
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
                     stepIndex++;
 
                     if (stepIndex >= routine.length) {
-                        stepIndex = 1; // 준비 단계(index 0)는 첫 세트만 하고 생략
+                        stepIndex = 1;
                         currentSet++;
                     }
                     runStep();
@@ -165,7 +164,7 @@
         }
 
         function updateDisplay() {
-            document.getElementById('time').innerText = timeLeft;
+            document.getElementById('time').innerText = timeLeft < 10 ? "0" + timeLeft : timeLeft;
             let nextName = routine[stepIndex + 1] ? routine[stepIndex + 1].name : "다시 일반 플랭크";
             document.getElementById('next-step').innerText = "다음: " + nextName;
         }
