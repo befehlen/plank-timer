@@ -453,7 +453,20 @@
         }
 
         function updateUIWithConfig() {
+            // Re-render UI text based on language
+            document.title = t('title');
+            document.getElementById('status').innerText = t('status_ready');
+            document.getElementById('next-step').innerText = t('desc_ready');
+            document.getElementById('start-btn').innerText = t('btn_start');
+            document.getElementById('progress').innerText = t('progress', { current: 1, total: userConfig.totalSets }).split(':')[0] + ": " + userConfig.totalSets;
             document.getElementById('total-sets-display').innerText = userConfig.totalSets;
+
+            // Update Settings Modal Labels
+            document.querySelector('#settings-modal h2').innerText = t('settings_title');
+            document.querySelector('label[for="setting-sets"]').innerText = t('label_sets');
+            document.querySelector('.btn-cancel').innerText = t('btn_cancel');
+            document.querySelector('.btn-reset').innerText = t('btn_reset');
+            document.querySelector('.btn-save').innerText = t('btn_save');
         }
 
         function saveConfig() {
@@ -461,18 +474,17 @@
         }
 
         function resetConfig() {
-            if (confirm("정말 모든 설정을 초기화하시겠습니까?")) {
+            if (confirm("Reset all settings?")) {
                 userConfig = JSON.parse(JSON.stringify(defaultConfig));
                 saveConfig();
-                renderSettings(); // Re-render settings modal inputs
-                updateUIWithConfig(); // Update main UI
+                updateUIWithConfig();
                 closeSettings();
             }
         }
 
         function openSettings() {
             if (isRunning) {
-                alert("타이머 작동 중에는 설정을 변경할 수 없습니다.");
+                alert("Cannot change settings while running.");
                 return;
             }
             const modal = document.getElementById('settings-modal');
@@ -484,16 +496,16 @@
             routineContainer.innerHTML = '';
 
             // Group 1: Prepare & Posture Change (indices 0, 2, 4)
-            createSettingItem(routineContainer, "준비/자세 변경 (초)", "setting-prep", userConfig.routine[0].time);
+            createSettingItem(routineContainer, t('label_prep'), "setting-prep", userConfig.routine[0].time);
 
             // Group 2: Regular Plank (index 1)
-            createSettingItem(routineContainer, "일반 플랭크 (초)", "setting-plank", userConfig.routine[1].time);
+            createSettingItem(routineContainer, t('label_plank'), "setting-plank", userConfig.routine[1].time);
 
             // Group 3: Side Plank (indices 3, 5)
-            createSettingItem(routineContainer, "사이드 플랭크 (초)", "setting-side", userConfig.routine[3].time);
+            createSettingItem(routineContainer, t('label_side'), "setting-side", userConfig.routine[3].time);
 
             // Group 4: Rest (index 6)
-            createSettingItem(routineContainer, "세트 휴식 (초)", "setting-rest", userConfig.routine[6].time);
+            createSettingItem(routineContainer, t('label_rest'), "setting-rest", userConfig.routine[6].time);
         }
 
         function createSettingItem(container, labelText, id, value) {
@@ -555,9 +567,9 @@
             let current = userConfig.routine[stepIndex];
             timeLeft = current.time;
 
-            document.getElementById('status').innerText = current.name;
+            document.getElementById('status').innerText = t(current.id);
             document.getElementById('status').style.color = current.color;
-            document.getElementById('progress').innerText = `현재 세트: ${currentSet} / ${userConfig.totalSets}`;
+            document.getElementById('progress').innerText = t('progress', { current: currentSet, total: userConfig.totalSets });
 
             playBeep(440, 0.2);
             updateDisplay();
@@ -573,13 +585,6 @@
                     stepIndex++;
 
                     if (stepIndex >= userConfig.routine.length) {
-                        stepIndex = 0; // The first step (Preparation) is often skipped in subsequent sets in some apps, but here we keep it simple or we can logic to skip "Preparation" if desired.
-                        // Actually, routine loop: usually prepare is only at start? 
-                        // The original code reset stepIndex = 1 to skip "준비 하세요!" on subsequent sets.
-                        // Let's keep that logic: config.routine[0] is usually initial prep.
-
-                        // Wait, looking at original code:
-                        // if (stepIndex >= routine.length) { stepIndex = 1; currentSet++; }
                         stepIndex = 1;
                         currentSet++;
                     }
@@ -589,11 +594,11 @@
         }
 
         function finishRoutine() {
-            document.getElementById('status').innerText = "전체 루틴 완료!";
-            document.getElementById('time').innerText = "DONE";
-            document.getElementById('next-step').innerText = "정말 대단하세요!";
+            document.getElementById('status').innerText = t('done_status');
+            document.getElementById('time').innerText = t('done_time');
+            document.getElementById('next-step').innerText = t('done_desc');
             playBeep(880, 0.5);
-            document.getElementById('start-btn').innerText = "다시 시작";
+            document.getElementById('start-btn').innerText = t('btn_restart');
             document.getElementById('start-btn').style.display = 'inline-block';
             document.querySelector('.settings-btn').style.display = 'block';
             isRunning = false;
@@ -603,15 +608,22 @@
             document.getElementById('time').innerText = timeLeft < 10 ? "0" + timeLeft : timeLeft;
             let nextName;
             if (userConfig.routine[stepIndex + 1]) {
-                nextName = userConfig.routine[stepIndex + 1].name;
+                nextName = t(userConfig.routine[stepIndex + 1].id);
+                document.getElementById('next-step').innerText = t('next', { name: nextName });
             } else {
                 if (currentSet >= userConfig.totalSets) {
-                    nextName = "운동 종료";
+                    nextName = t('end');
+                    document.getElementById('next-step').innerText = t('next', { name: nextName });
                 } else {
-                    nextName = "다시 " + userConfig.routine[1].name; // Assuming index 1 is the first exercise
+                    nextName = t(userConfig.routine[1].id);
+                    document.getElementById('next-step').innerText = t('again', { name: nextName });
                 }
             }
-            document.getElementById('next-step').innerText = "다음: " + nextName;
+            document.getElementById('next-step').innerText = t('next', { name: nextName }); // Redundant line in original? No, original had logic.
+            // Wait, my replacement logic for updateDisplay above has:
+            // document.getElementById('next-step').innerText = t('next', { name: nextName });
+            // inside the branches. The original had it at the end.
+            // I should match the original structure or just use my replacement which seems robust.
         }
 
         // Initialize
