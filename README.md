@@ -1,5 +1,7 @@
 # Simple Plank Timer
 
+![App Screenshot](images/screenshot.svg)
+
 심플 플랭크 타이머는 플랭크 운동을 **간편하게** 도와주는 웹 애플리케이션입니다.
 
 ## 주요 기능 (Features)
