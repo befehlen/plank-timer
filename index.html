@@ -30,6 +30,23 @@
             width: 100%;
             max-width: 400px;
             border: 1px solid #0f3460;
+            position: relative;
+        }
+
+        .settings-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            z-index: 10;
+            opacity: 0.7;
+            transition: 0.3s;
+        }
+
+        .settings-btn:hover {
+            opacity: 1;
+            transform: rotate(90deg);
         }
 
         #status {
@@ -78,17 +95,117 @@
             color: #4ecca3;
             font-weight: bold;
         }
+
+        /* Settings Modal */
+        #settings-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background: #16213e;
+            padding: 30px;
+            border-radius: 20px;
+            width: 90%;
+            max-width: 400px;
+            max-height: 80vh;
+            overflow-y: auto;
+            text-align: left;
+            border: 1px solid #4ecca3;
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+            text-align: center;
+            color: #4ecca3;
+        }
+
+        .setting-item {
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .setting-item label {
+            font-size: 1rem;
+            color: #ddd;
+        }
+
+        .setting-item input {
+            background: #0f3460;
+            border: 1px solid #533483;
+            color: white;
+            padding: 8px;
+            border-radius: 5px;
+            width: 80px;
+            text-align: center;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            gap: 10px;
+        }
+
+        .modal-buttons button {
+            padding: 10px 20px;
+            font-size: 1rem;
+            flex: 1;
+        }
+
+        .btn-cancel {
+            background: #533483;
+        }
+
+        .btn-reset {
+            background: #95a5a6;
+        }
+
+        .btn-save {
+            background: #4ecca3;
+            color: #1a1a2e;
+        }
     </style>
 </head>
 
 <body>
 
     <div id="timer-card">
+        <div class="settings-btn" onclick="openSettings()">⚙️</div>
         <div id="status">준비되셨나요?</div>
         <div id="time">05</div>
-        <div id="next-step">버튼을 누르면 5초 후 시작합니다</div>
-        <button onclick="initTimer()">운동 시작!</button>
-        <div class="progress" id="progress">전체 3세트 진행</div>
+        <div id="next-step">버튼을 누르면 시작합니다</div>
+        <button onclick="initTimer()" id="start-btn">운동 시작!</button>
+        <div class="progress" id="progress">전체 세트: <span id="total-sets-display">3</span></div>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal">
+        <div class="modal-content">
+            <h2>설정</h2>
+            <div class="setting-item">
+                <label>총 세트 수:</label>
+                <input type="number" id="setting-sets" min="1" max="10">
+            </div>
+            <div id="routine-settings">
+                <!-- Routine items will be injected here -->
+            </div>
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeSettings()">취소</button>
+                <button class="btn-reset" onclick="resetConfig()">초기화</button>
+                <button class="btn-save" onclick="saveSettings()">저장</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -98,6 +215,10 @@
 
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         function playBeep(frequency = 440, duration = 0.2) {
+            // AudioContext needs user interaction to start
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
             const oscillator = audioCtx.createOscillator();
             const gainNode = audioCtx.createGain();
             oscillator.connect(gainNode);
@@ -111,42 +232,153 @@
             oscillator.stop(audioCtx.currentTime + duration);
         }
 
-        const routine = [
-            { name: "준비 하세요!", time: 5, color: "#f1c40f" },
-            { name: "일반 플랭크", time: 45, color: "#e94560" },
-            { name: "자세 변경(좌)", time: 5, color: "#f1c40f" }, // 10 -> 5초로 수정
-            { name: "사이드 플랭크(좌)", time: 30, color: "#0984e3" },
-            { name: "자세 변경(우)", time: 5, color: "#f1c40f" }, // 10 -> 5초로 수정
-            { name: "사이드 플랭크(우)", time: 30, color: "#0984e3" },
-            { name: "세트 휴식", time: 60, color: "#4ecca3" }
-        ];
+        const defaultConfig = {
+            totalSets: 3,
+            routine: [
+                { name: "준비 하세요!", time: 5, color: "#f1c40f" },
+                { name: "일반 플랭크", time: 45, color: "#e94560" },
+                { name: "자세 변경(좌)", time: 5, color: "#f1c40f" },
+                { name: "사이드 플랭크(좌)", time: 30, color: "#0984e3" },
+                { name: "자세 변경(우)", time: 5, color: "#f1c40f" },
+                { name: "사이드 플랭크(우)", time: 30, color: "#0984e3" },
+                { name: "세트 휴식", time: 60, color: "#4ecca3" }
+            ]
+        };
 
+        let userConfig = JSON.parse(JSON.stringify(defaultConfig));
         let currentSet = 1;
         let stepIndex = 0;
         let timeLeft = 0;
         let timerInterval;
+        let isRunning = false;
+
+        function loadConfig() {
+            const saved = localStorage.getItem('plankTimerConfig');
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    // Merge saved config with default structure to ensure compatibility
+                    if (parsed.totalSets) userConfig.totalSets = parsed.totalSets;
+                    if (parsed.routine && Array.isArray(parsed.routine)) {
+                        // Ensure we have the same number of steps and names as default
+                        // adhering to the "fixed routine structure, mutable times" requirement implied
+                        // or just trust the saved routine if we want full flexibility.
+                        // For now, let's load it directly but maybe validate?
+                        userConfig.routine = parsed.routine;
+                    }
+                } catch (e) {
+                    console.error("Failed to load config", e);
+                }
+            }
+            updateUIWithConfig();
+        }
+
+        function updateUIWithConfig() {
+            document.getElementById('total-sets-display').innerText = userConfig.totalSets;
+        }
+
+        function saveConfig() {
+            localStorage.setItem('plankTimerConfig', JSON.stringify(userConfig));
+        }
+
+        function resetConfig() {
+            if (confirm("정말 모든 설정을 초기화하시겠습니까?")) {
+                userConfig = JSON.parse(JSON.stringify(defaultConfig));
+                saveConfig();
+                renderSettings(); // Re-render settings modal inputs
+                updateUIWithConfig(); // Update main UI
+                closeSettings();
+            }
+        }
+
+        function openSettings() {
+            if (isRunning) {
+                alert("타이머 작동 중에는 설정을 변경할 수 없습니다.");
+                return;
+            }
+            const modal = document.getElementById('settings-modal');
+            modal.style.display = 'flex';
+
+            document.getElementById('setting-sets').value = userConfig.totalSets;
+
+            const routineContainer = document.getElementById('routine-settings');
+            routineContainer.innerHTML = '';
+
+            // Group 1: Prepare & Posture Change (indices 0, 2, 4)
+            createSettingItem(routineContainer, "준비/자세 변경 (초)", "setting-prep", userConfig.routine[0].time);
+
+            // Group 2: Regular Plank (index 1)
+            createSettingItem(routineContainer, "일반 플랭크 (초)", "setting-plank", userConfig.routine[1].time);
+
+            // Group 3: Side Plank (indices 3, 5)
+            createSettingItem(routineContainer, "사이드 플랭크 (초)", "setting-side", userConfig.routine[3].time);
+
+            // Group 4: Rest (index 6)
+            createSettingItem(routineContainer, "세트 휴식 (초)", "setting-rest", userConfig.routine[6].time);
+        }
+
+        function createSettingItem(container, labelText, id, value) {
+            const div = document.createElement('div');
+            div.className = 'setting-item';
+            div.innerHTML = `
+                 <label>${labelText}:</label>
+                 <input type="number" id="${id}" value="${value}" min="1">
+             `;
+            container.appendChild(div);
+        }
+
+        function closeSettings() {
+            document.getElementById('settings-modal').style.display = 'none';
+        }
+
+        function saveSettings() {
+            const newSets = parseInt(document.getElementById('setting-sets').value);
+            if (newSets > 0) userConfig.totalSets = newSets;
+
+            const prepTime = parseInt(document.getElementById('setting-prep').value);
+            const plankTime = parseInt(document.getElementById('setting-plank').value);
+            const sideTime = parseInt(document.getElementById('setting-side').value);
+            const restTime = parseInt(document.getElementById('setting-rest').value);
+
+            if (prepTime > 0) {
+                userConfig.routine[0].time = prepTime;
+                userConfig.routine[2].time = prepTime;
+                userConfig.routine[4].time = prepTime;
+            }
+            if (plankTime > 0) userConfig.routine[1].time = plankTime;
+            if (sideTime > 0) {
+                userConfig.routine[3].time = sideTime;
+                userConfig.routine[5].time = sideTime;
+            }
+            if (restTime > 0) userConfig.routine[6].time = restTime;
+
+            saveConfig();
+            updateUIWithConfig();
+            closeSettings();
+        }
 
         function initTimer() {
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            document.querySelector('button').style.display = 'none';
+            document.getElementById('start-btn').style.display = 'none';
+            document.querySelector('.settings-btn').style.display = 'none'; // Hide settings during run
+            isRunning = true;
+            currentSet = 1;
+            stepIndex = 0;
             runStep();
         }
 
         function runStep() {
-            if (currentSet > 3) {
-                document.getElementById('status').innerText = "전체 루틴 완료!";
-                document.getElementById('time').innerText = "DONE";
-                document.getElementById('next-step').innerText = "정말 대단하세요!";
-                playBeep(880, 0.5);
+            if (currentSet > userConfig.totalSets) {
+                finishRoutine();
                 return;
             }
 
-            let current = routine[stepIndex];
+            let current = userConfig.routine[stepIndex];
             timeLeft = current.time;
 
             document.getElementById('status').innerText = current.name;
             document.getElementById('status').style.color = current.color;
-            document.getElementById('progress').innerText = `현재 세트: ${currentSet} / 3`;
+            document.getElementById('progress').innerText = `현재 세트: ${currentSet} / ${userConfig.totalSets}`;
 
             playBeep(440, 0.2);
             updateDisplay();
@@ -161,7 +393,14 @@
                     clearInterval(timerInterval);
                     stepIndex++;
 
-                    if (stepIndex >= routine.length) {
+                    if (stepIndex >= userConfig.routine.length) {
+                        stepIndex = 0; // The first step (Preparation) is often skipped in subsequent sets in some apps, but here we keep it simple or we can logic to skip "Preparation" if desired.
+                        // Actually, routine loop: usually prepare is only at start? 
+                        // The original code reset stepIndex = 1 to skip "준비 하세요!" on subsequent sets.
+                        // Let's keep that logic: config.routine[0] is usually initial prep.
+
+                        // Wait, looking at original code:
+                        // if (stepIndex >= routine.length) { stepIndex = 1; currentSet++; }
                         stepIndex = 1;
                         currentSet++;
                     }
@@ -170,20 +409,34 @@
             }, 1000);
         }
 
+        function finishRoutine() {
+            document.getElementById('status').innerText = "전체 루틴 완료!";
+            document.getElementById('time').innerText = "DONE";
+            document.getElementById('next-step').innerText = "정말 대단하세요!";
+            playBeep(880, 0.5);
+            document.getElementById('start-btn').innerText = "다시 시작";
+            document.getElementById('start-btn').style.display = 'inline-block';
+            document.querySelector('.settings-btn').style.display = 'block';
+            isRunning = false;
+        }
+
         function updateDisplay() {
             document.getElementById('time').innerText = timeLeft < 10 ? "0" + timeLeft : timeLeft;
             let nextName;
-            if (routine[stepIndex + 1]) {
-                nextName = routine[stepIndex + 1].name;
+            if (userConfig.routine[stepIndex + 1]) {
+                nextName = userConfig.routine[stepIndex + 1].name;
             } else {
-                if (currentSet >= 3) {
+                if (currentSet >= userConfig.totalSets) {
                     nextName = "운동 종료";
                 } else {
-                    nextName = "다시 일반 플랭크";
+                    nextName = "다시 " + userConfig.routine[1].name; // Assuming index 1 is the first exercise
                 }
             }
             document.getElementById('next-step').innerText = "다음: " + nextName;
         }
+
+        // Initialize
+        loadConfig();
     </script>
 </body>
 
