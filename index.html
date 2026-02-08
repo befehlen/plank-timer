@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>프로 플랭크 타이머</title>
+    <link rel="stylesheet" as="style" crossorigin
+        href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.8/dist/web/static/pretendard.css" />
     <style>
         body {
             font-family: 'Pretendard', sans-serif;
@@ -105,11 +107,11 @@
         }
 
         const routine = [
-            { name: "준비 하세요!", time: 5, color: "#f1c40f" }, // 10초에서 5초로 수정
+            { name: "준비 하세요!", time: 5, color: "#f1c40f" },
             { name: "일반 플랭크", time: 45, color: "#e94560" },
-            { name: "자세 변경(좌)", time: 10, color: "#f1c40f" },
+            { name: "자세 변경(좌)", time: 5, color: "#f1c40f" }, // 10 -> 5초로 수정
             { name: "사이드 플랭크(좌)", time: 30, color: "#0984e3" },
-            { name: "자세 변경(우)", time: 10, color: "#f1c40f" },
+            { name: "자세 변경(우)", time: 5, color: "#f1c40f" }, // 10 -> 5초로 수정
             { name: "사이드 플랭크(우)", time: 30, color: "#0984e3" },
             { name: "세트 휴식", time: 60, color: "#4ecca3" }
         ];
@@ -165,7 +167,16 @@
 
         function updateDisplay() {
             document.getElementById('time').innerText = timeLeft < 10 ? "0" + timeLeft : timeLeft;
-            let nextName = routine[stepIndex + 1] ? routine[stepIndex + 1].name : "다시 일반 플랭크";
+            let nextName;
+            if (routine[stepIndex + 1]) {
+                nextName = routine[stepIndex + 1].name;
+            } else {
+                if (currentSet >= 3) {
+                    nextName = "운동 종료";
+                } else {
+                    nextName = "다시 일반 플랭크";
+                }
+            }
             document.getElementById('next-step').innerText = "다음: " + nextName;
         }
     </script>
