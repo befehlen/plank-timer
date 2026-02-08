@@ -15,11 +15,12 @@
 
     <div id="timer-card">
         <div class="settings-btn" onclick="openSettings()">⚙️</div>
-        <div id="status">준비되셨나요?</div>
+        <div id="status">Are you ready?</div>
+        <!-- Default text is Korean/English, but JS will update it immediately -->
         <div id="time">05</div>
-        <div id="next-step">버튼을 누르면 시작합니다</div>
-        <button onclick="initTimer()" id="start-btn">운동 시작!</button>
-        <div class="progress" id="progress">전체 세트: <span id="total-sets-display">3</span></div>
+        <div id="next-step">Press button to start</div>
+        <button onclick="initTimer()" id="start-btn">Start Workout</button>
+        <div class="progress" id="progress"></div>
     </div>
 
     <!-- Settings Modal -->
